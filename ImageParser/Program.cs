@@ -10,32 +10,20 @@ namespace ImageParser
 {
     class Program
     {
-        
-
         static void Main(string[] args)
         {
             List<string> images = new List<string>();
+            string site = "";
+            site = @"http://ptime.ru/";
+            //site = @"https://ogo1.ru";
+
+
             Console.WriteLine("Start parsing...");
-            //string html = GET(@"http://ptime.ru");
 
-            string html = GET(@"https://ogo1.ru");
-
-            //Console.WriteLine(html);
-            //string test = "<img src=\"images / ptime_07.gif\" width=\"519\" height=\"3\" alt=\"\">";
-            //string testImg = FindImages(html,0, ref images);
-            images = FindImages2(html);
-            Console.WriteLine();
-            //Console.WriteLine(testImg);
+            string html = GET(site);
             
-
-            foreach (var item in images)
-            {
-                Console.WriteLine(item);
-            }
-            Console.WriteLine("Parsing finished...");
-
-            Console.WriteLine();
-            Console.WriteLine();
+            images = FindTagSRC(html, "img");
+            
             Console.WriteLine();
             Console.WriteLine();
 
@@ -48,7 +36,8 @@ namespace ImageParser
 
             foreach (var item in unicImages)
             {
-                DowadImage(@"https://ogo1.ru/" + item);
+                string fullLink = site +  item;
+                DowadImage(fullLink);
             }
 
 
@@ -82,8 +71,7 @@ namespace ImageParser
                 return "";
         }
 
-
-        private static List<string> FindImages2(string test)
+        private static List<string> FindTagSRC(string test, string tag)
         {
             int startIndex = 0;
             int endIndex = 0;
@@ -92,7 +80,7 @@ namespace ImageParser
             List<string> images = new List<string>();
             while (imgIndex != -1)
             {
-                imgIndex = test.IndexOf("<img", startIndex);
+                imgIndex = test.IndexOf("<"+tag, startIndex);
                 if (endIndex <= test.Length && imgIndex != -1)
                 {
                     int srcIndex = test.IndexOf("src=\"", imgIndex + 4);
