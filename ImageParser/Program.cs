@@ -13,6 +13,7 @@ namespace ImageParser
         static void Main(string[] args)
         {
             List<string> images = new List<string>();
+            List<string> links = new List<string>();
             string site = "";
             site = @"http://ptime.ru/";
             //site = @"https://ogo1.ru";
@@ -22,7 +23,14 @@ namespace ImageParser
 
             string html = GET(site);
             
-            images = FindTagSRC(html, "img");
+            images = FindTagSRC(html, "img", "src=\"");
+
+            links = GetAllLinksFromSite(site, 3, site);
+            foreach (var item in links)
+            {
+                Console.WriteLine(item);
+            }
+
             
             Console.WriteLine();
             Console.WriteLine();
@@ -44,6 +52,69 @@ namespace ImageParser
             Console.WriteLine("Parsing finished...");
 
             Console.ReadKey();
+        }
+
+        private static List<string> GetAllLinksFromSite(string site, int deep, string originalSite)
+        {
+            List<string> temp = new List<string>();
+            List<string> temp2 = new List<string>();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(site);
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!------" + deep + "-----!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+
+
+
+            if (deep!=0 )
+            {
+                string html = GET(site);
+                temp = GetLinksFromPage(html);
+                ShowList(temp);
+                
+                foreach (var item in temp)
+                {
+                     temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
+                }
+                Console.WriteLine();
+                Console.WriteLine("Итоговый temp2:");
+                Console.WriteLine();
+                ShowList(temp2);
+                temp.AddRange(new List<string>( temp2.Distinct()));
+                
+            }
+            Console.WriteLine();
+            Console.WriteLine("Итоговый temp:");
+            Console.WriteLine();
+            temp = new List<string>(temp.Distinct());
+            ShowList(temp);
+            return temp;
+        }
+
+        private static void ShowList(List<string> ls)
+        {
+            foreach (var item in ls)
+            {
+                Console.WriteLine(item);
+            }
+        }
+
+        private static List<string> GetLinksFromPage(string page)
+        {
+            List<string> temp = new List<string>();
+            List<string> temp3 = new List<string>();
+            temp = FindTagSRC(page, @"a ", "href=\"");
+            foreach (var item in temp)
+            {
+                if (!item.EndsWith(".pdf"))
+                    temp3.Add(item);
+            }
+
+            List<string> temp2 = new List<string>(temp3.Distinct());
+            return temp2;
         }
 
         private static string FindImages(string test, int startIndex, ref List<string> ttt)
@@ -71,7 +142,7 @@ namespace ImageParser
                 return "";
         }
 
-        private static List<string> FindTagSRC(string test, string tag)
+        private static List<string> FindTagSRC(string test, string tag, string tagAtrr)
         {
             int startIndex = 0;
             int endIndex = 0;
@@ -83,10 +154,10 @@ namespace ImageParser
                 imgIndex = test.IndexOf("<"+tag, startIndex);
                 if (endIndex <= test.Length && imgIndex != -1)
                 {
-                    int srcIndex = test.IndexOf("src=\"", imgIndex + 4);
-                    endIndex = test.IndexOf("\"", srcIndex + 5);
+                    int srcIndex = test.IndexOf(tagAtrr, imgIndex +tag.Length+ 1);
+                    endIndex = test.IndexOf("\"", srcIndex + tagAtrr.Length);
                     
-                    temp = test.Substring(srcIndex + 5, endIndex - srcIndex - 5);
+                    temp = test.Substring(srcIndex + tagAtrr.Length, endIndex - srcIndex - tagAtrr.Length);
                     
                     images.Add(temp);
                     startIndex = endIndex;
@@ -117,13 +188,22 @@ namespace ImageParser
 
         private static string GET(string Url)
         {
-            WebRequest req = WebRequest.Create(Url);
-            WebResponse resp = req.GetResponse();
-            Stream stream = resp.GetResponseStream();
-            StreamReader sr = new StreamReader(stream);
-            string Out = sr.ReadToEnd();
+            string Out = "";
+            try
+            {
+                WebRequest req = WebRequest.Create(Url);
+                WebResponse resp = req.GetResponse();
+                Stream stream = resp.GetResponseStream();
+                StreamReader sr = new StreamReader(stream);
+            
+            Out = sr.ReadToEnd();
             sr.Close();
             return Out;
+            }
+            catch
+            {
+                return Out; 
+            }
         }
     }
 }
