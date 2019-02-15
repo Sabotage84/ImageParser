@@ -29,6 +29,7 @@ namespace ImageParser
             foreach (var item in links)
             {
                 Console.WriteLine(item);
+                images.AddRange(FindTagSRC(GET(site+item), "img", "src=\""));
             }
 
             
@@ -58,14 +59,14 @@ namespace ImageParser
         {
             List<string> temp = new List<string>();
             List<string> temp2 = new List<string>();
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine(site);
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!------" + deep + "-----!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine(site);
+            //Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!------" + deep + "-----!!!!!!!!!!!!!!!!!!!!!");
+            //Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine();
 
 
 
@@ -73,24 +74,24 @@ namespace ImageParser
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-                ShowList(temp);
+                //ShowList(temp);
                 
                 foreach (var item in temp)
                 {
                      temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
                 }
-                Console.WriteLine();
-                Console.WriteLine("Итоговый temp2:");
-                Console.WriteLine();
-                ShowList(temp2);
+                //Console.WriteLine();
+                //Console.WriteLine("Итоговый temp2:");
+                //Console.WriteLine();
+                //ShowList(temp2);
                 temp.AddRange(new List<string>( temp2.Distinct()));
                 
             }
-            Console.WriteLine();
-            Console.WriteLine("Итоговый temp:");
-            Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine("Итоговый temp:");
+            //Console.WriteLine();
             temp = new List<string>(temp.Distinct());
-            ShowList(temp);
+            //ShowList(temp);
             return temp;
         }
 
@@ -109,7 +110,7 @@ namespace ImageParser
             temp = FindTagSRC(page, @"a ", "href=\"");
             foreach (var item in temp)
             {
-                if (!item.EndsWith(".pdf"))
+                if (item.EndsWith(".html"))
                     temp3.Add(item);
             }
 
