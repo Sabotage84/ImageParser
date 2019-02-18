@@ -21,27 +21,30 @@ namespace ImageParser
 
             Console.WriteLine("Start parsing...");
 
-            string html = GET(site);
+            //string html = GET(@"http://www.ptime.ru/Metronom/servers/Metronom300.html/..");
+
+            //Console.WriteLine(html);
+
+
             
-            images = FindTagSRC(html, "img", "src=\"");
+            //images = FindTagSRC(html, "img", "src=\"");
 
             links = GetAllLinksFromSite(site, 3, site);
+            ShowList(links);
+
             foreach (var item in links)
             {
-                Console.WriteLine(item);
+                //Console.WriteLine(item);
                 images.AddRange(FindTagSRC(GET(site+item), "img", "src=\""));
             }
 
             
             Console.WriteLine();
             Console.WriteLine();
+            ShowList(images);
+            List<string> unicImages = new List<string> (images.Distinct());
 
-            var unicImages = images.Distinct();
-
-            foreach (var item in unicImages)
-            {
-                Console.WriteLine(item);
-            }
+            ShowList(unicImages);
 
             foreach (var item in unicImages)
             {
@@ -74,8 +77,11 @@ namespace ImageParser
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-                //ShowList(temp);
-                
+                ShowList(temp);
+
+                temp=CorrectLilks(site, temp);
+
+                ShowList(temp);
                 foreach (var item in temp)
                 {
                      temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
@@ -93,6 +99,36 @@ namespace ImageParser
             temp = new List<string>(temp.Distinct());
             //ShowList(temp);
             return temp;
+        }
+
+        private static List<string> CorrectLilks(string site, List<string> temp)
+        {
+            List<string> correctedList = new List<string>();
+            string[] levels = site.Split('/');
+           
+            foreach (var item in temp)
+            {
+                List<string> l = levels.ToList();
+                l.Remove(l.Last());
+                string[] linkLevels = item.Split('/');
+                for (int i = linkLevels.Length-1; i >=0; i--)
+                {
+                    if (linkLevels[i] == "..")
+                    {
+                        linkLevels[i] = l.Last();
+                        l.Remove(l.Last());
+                    }
+                }
+                string str = "";
+                foreach (var item2 in linkLevels)
+                {
+                    str += item2 + @"/";
+                }
+                correctedList.Add(str.Substring(0,str.Length-1));
+            }
+
+
+            return correctedList;
         }
 
         private static void ShowList(List<string> ls)
@@ -114,8 +150,8 @@ namespace ImageParser
                     temp3.Add(item);
             }
 
-            List<string> temp2 = new List<string>(temp3.Distinct());
-            return temp2;
+            temp = new List<string>(temp3.Distinct());
+            return temp;
         }
 
         private static string FindImages(string test, int startIndex, ref List<string> ttt)
@@ -164,6 +200,7 @@ namespace ImageParser
                     startIndex = endIndex;
                 }
             }
+            images = new List<string>(images.Distinct());
             return images;
         }
 
@@ -174,7 +211,7 @@ namespace ImageParser
             using (WebClient wClient = new WebClient())
             {
                 string path = @"img\"+fileName;
-                Console.WriteLine("Download - " + link);
+                //Console.WriteLine("Download - " + link);
                 Uri url = new Uri(link);
                 try
                 {
@@ -182,7 +219,7 @@ namespace ImageParser
                 }
                 catch
                 {
-                    Console.WriteLine("BAD LINK!");
+                    //Console.WriteLine("BAD LINK!");
                 }
             }
         }
@@ -194,6 +231,7 @@ namespace ImageParser
             {
                 WebRequest req = WebRequest.Create(Url);
                 WebResponse resp = req.GetResponse();
+                //Console.WriteLine(resp.Headers.ToString());
                 Stream stream = resp.GetResponseStream();
                 StreamReader sr = new StreamReader(stream);
             
@@ -201,8 +239,9 @@ namespace ImageParser
             sr.Close();
             return Out;
             }
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e.Message);
                 return Out; 
             }
         }
