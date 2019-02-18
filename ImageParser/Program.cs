@@ -34,8 +34,10 @@ namespace ImageParser
 
             foreach (var item in links)
             {
-                //Console.WriteLine(item);
-                images.AddRange(FindTagSRC(GET(site+item), "img", "src=\""));
+                List<string> ls = new List<string>();
+                ls = (FindTagSRC(GET(site + item), "img", "src=\""));
+                ls = CorrectLilks(site+item, ls);
+                images.AddRange(ls);
             }
 
             
@@ -77,11 +79,11 @@ namespace ImageParser
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-                ShowList(temp);
+               // ShowList(temp);
 
                 temp=CorrectLilks(site, temp);
 
-                ShowList(temp);
+                //ShowList(temp);
                 foreach (var item in temp)
                 {
                      temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
@@ -211,7 +213,7 @@ namespace ImageParser
             using (WebClient wClient = new WebClient())
             {
                 string path = @"img\"+fileName;
-                //Console.WriteLine("Download - " + link);
+                Console.WriteLine("Download - " + link);
                 Uri url = new Uri(link);
                 try
                 {
@@ -219,7 +221,7 @@ namespace ImageParser
                 }
                 catch
                 {
-                    //Console.WriteLine("BAD LINK!");
+                    Console.WriteLine("BAD LINK!");
                 }
             }
         }
