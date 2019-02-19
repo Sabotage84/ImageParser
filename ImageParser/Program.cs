@@ -15,7 +15,8 @@ namespace ImageParser
             List<string> images = new List<string>();
             List<string> links = new List<string>();
             string site = "";
-            site = @"http://ptime.ru/";
+            site = @"http://www.ptime.ru/Metronom/servers/Metronom3000.html";
+            //site = @"http://ptime.ru/";
             //site = @"https://ogo1.ru";
 
 
@@ -35,7 +36,13 @@ namespace ImageParser
             foreach (var item in links)
             {
                 List<string> ls = new List<string>();
-                ls = (FindTagSRC(GET(site + item), "img", "src=\""));
+                string[] words = site.Split(new char[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                string tempLink = "";
+                if (item.StartsWith(words[words.Length - 1]))
+                    tempLink = "http://" + item;
+                else
+                    tempLink = site + item;
+                ls = (FindTagSRC(GET(tempLink), "img", "src=\""));
                 ls = CorrectLilks(site+item, ls);
                 images.AddRange(ls);
             }
@@ -64,40 +71,25 @@ namespace ImageParser
         {
             List<string> temp = new List<string>();
             List<string> temp2 = new List<string>();
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine(site);
-            //Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!------" + deep + "-----!!!!!!!!!!!!!!!!!!!!!");
-            //Console.WriteLine();
-            //Console.WriteLine();
-            //Console.WriteLine();
-
-
 
             if (deep!=0 )
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-               // ShowList(temp);
+                ShowList(temp);
 
                 temp=CorrectLilks(site, temp);
 
-                //ShowList(temp);
+                ShowList(temp);
                 foreach (var item in temp)
                 {
                      temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
                 }
-                //Console.WriteLine();
-                //Console.WriteLine("Итоговый temp2:");
-                //Console.WriteLine();
-                //ShowList(temp2);
+                
                 temp.AddRange(new List<string>( temp2.Distinct()));
                 
             }
-            //Console.WriteLine();
-            //Console.WriteLine("Итоговый temp:");
-            //Console.WriteLine();
+            
             temp = new List<string>(temp.Distinct());
             //ShowList(temp);
             return temp;
@@ -113,18 +105,24 @@ namespace ImageParser
                 List<string> l = levels.ToList();
                 l.Remove(l.Last());
                 string[] linkLevels = item.Split('/');
-                for (int i = linkLevels.Length-1; i >=0; i--)
+                int up = 0;
+                for (int i = 0; i <linkLevels.Length; i++)
                 {
                     if (linkLevels[i] == "..")
                     {
-                        linkLevels[i] = l.Last();
-                        l.Remove(l.Last());
+                        up++;
                     }
                 }
                 string str = "";
+                if (up > 0)
+                    str = l[l.Count - 1 - up]+"/";
+                if (up == 0)
+                    str = l[l.Count - 1] + "/";
+                
                 foreach (var item2 in linkLevels)
                 {
-                    str += item2 + @"/";
+                    if (item2!="..")
+                        str += item2 + @"/";
                 }
                 correctedList.Add(str.Substring(0,str.Length-1));
             }
@@ -244,6 +242,7 @@ namespace ImageParser
             catch(Exception e)
             {
                 Console.WriteLine(e.Message);
+                Console.WriteLine(Url);
                 return Out; 
             }
         }
