@@ -15,56 +15,52 @@ namespace ImageParser
             List<string> images = new List<string>();
             List<string> links = new List<string>();
             string site = "";
-            site = @"http://www.ptime.ru/Metronom/servers/Metronom3000.html";
-            //site = @"http://ptime.ru/";
+            
+            site = @"http://ptime.ru/";
             //site = @"https://ogo1.ru";
 
 
             Console.WriteLine("Start parsing...");
 
-            //string html = GET(@"http://www.ptime.ru/Metronom/servers/Metronom300.html/..");
-
-            //Console.WriteLine(html);
-
-
-            
-            //images = FindTagSRC(html, "img", "src=\"");
-
             links = GetAllLinksFromSite(site, 3, site);
-            ShowList(links);
+            //ShowList(links);
+
+            //CheckLinks(links);
 
             foreach (var item in links)
             {
                 List<string> ls = new List<string>();
-                string[] words = site.Split(new char[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                string tempLink = "";
-                if (item.StartsWith(words[words.Length - 1]))
-                    tempLink = "http://" + item;
-                else
-                    tempLink = site + item;
-                ls = (FindTagSRC(GET(tempLink), "img", "src=\""));
-                ls = CorrectLilks(site+item, ls);
+               
+                ls = (FindTagSRC(GET(item), "img", "src=\""));
+                ls = CorrectLilks(item, ls);
                 images.AddRange(ls);
             }
 
             
             Console.WriteLine();
             Console.WriteLine();
-            ShowList(images);
+            //ShowList(images);
             List<string> unicImages = new List<string> (images.Distinct());
 
             ShowList(unicImages);
 
             foreach (var item in unicImages)
             {
-                string fullLink = site +  item;
-                DowadImage(fullLink);
+                DowadImage(item);
             }
 
 
             Console.WriteLine("Parsing finished...");
 
             Console.ReadKey();
+        }
+
+        private static void CheckLinks(List<string> links)
+        {
+            foreach (var item in links)
+            {
+                GET(item);
+            }
         }
 
         private static List<string> GetAllLinksFromSite(string site, int deep, string originalSite)
@@ -76,14 +72,12 @@ namespace ImageParser
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-                ShowList(temp);
-
+                //ShowList(temp);
                 temp=CorrectLilks(site, temp);
-
-                ShowList(temp);
+                //ShowList(temp);
                 foreach (var item in temp)
                 {
-                     temp2.AddRange(GetAllLinksFromSite(originalSite+item, deep-1, originalSite));
+                     temp2.AddRange(GetAllLinksFromSite(item, deep-1, originalSite));
                 }
                 
                 temp.AddRange(new List<string>( temp2.Distinct()));
@@ -98,37 +92,59 @@ namespace ImageParser
         private static List<string> CorrectLilks(string site, List<string> temp)
         {
             List<string> correctedList = new List<string>();
-            string[] levels = site.Split('/');
+            string[] levels = site.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
            
             foreach (var item in temp)
             {
                 List<string> l = levels.ToList();
-                l.Remove(l.Last());
-                string[] linkLevels = item.Split('/');
-                int up = 0;
-                for (int i = 0; i <linkLevels.Length; i++)
+                string correctedLink = "";
+                if (item.Contains(@"../"))
                 {
-                    if (linkLevels[i] == "..")
-                    {
-                        up++;
-                    }
+                    l.Remove(l.Last());
+                    correctedLink = LevelUpCorrected(item, l);
                 }
-                string str = "";
-                if (up > 0)
-                    str = l[l.Count - 1 - up]+"/";
-                if (up == 0)
-                    str = l[l.Count - 1] + "/";
+                else
+                    correctedLink = LocationCorrected(item, l);
                 
-                foreach (var item2 in linkLevels)
-                {
-                    if (item2!="..")
-                        str += item2 + @"/";
-                }
-                correctedList.Add(str.Substring(0,str.Length-1));
+                correctedList.Add(correctedLink);
+            }
+            return correctedList;
+        }
+
+        private static string LocationCorrected(string item, List<string> l)
+        {
+            string str = @"http://";
+            if (l.Last().EndsWith("html"))
+                l.Remove(l.Last());
+            for (int i = 1; i < l.Count; i++)
+            {
+                str += l[i] + "/";
+            }
+            return str + item;
+        }
+
+        private static string LevelUpCorrected(string item, List<string> l)
+        {
+            string[] linkLevels = item.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            string corLink = "";
+            int up = 0;
+            for (int i = 0; i < linkLevels.Length; i++)
+            {
+                if (linkLevels[i] == "..")
+                    up++;
+            }
+            string str = @"http://";
+            for (int i = 1; i < l.Count-up; i++)
+            {
+                str += l[i]+"/";
+            }
+            for (int i = 0; i < linkLevels.Length; i++)
+            {
+                if (linkLevels[i] != "..")
+                    str += linkLevels[i] + @"/";
             }
 
-
-            return correctedList;
+            return corLink=str.Substring(0,str.Length-1);
         }
 
         private static void ShowList(List<string> ls)
@@ -229,9 +245,10 @@ namespace ImageParser
             string Out = "";
             try
             {
+                //Console.WriteLine("Try GET: "+Url);
                 WebRequest req = WebRequest.Create(Url);
                 WebResponse resp = req.GetResponse();
-                //Console.WriteLine(resp.Headers.ToString());
+                
                 Stream stream = resp.GetResponseStream();
                 StreamReader sr = new StreamReader(stream);
             
@@ -243,6 +260,7 @@ namespace ImageParser
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(Url);
+                Console.ReadKey();
                 return Out; 
             }
         }
