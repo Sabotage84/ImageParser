@@ -23,9 +23,6 @@ namespace ImageParser
             Console.WriteLine("Start parsing...");
 
             links = GetAllLinksFromSite(site, 3, site);
-            //ShowList(links);
-
-            //CheckLinks(links);
 
             foreach (var item in links)
             {
@@ -36,10 +33,6 @@ namespace ImageParser
                 images.AddRange(ls);
             }
 
-            
-            Console.WriteLine();
-            Console.WriteLine();
-            //ShowList(images);
             List<string> unicImages = new List<string> (images.Distinct());
 
             ShowList(unicImages);
@@ -51,7 +44,6 @@ namespace ImageParser
 
 
             Console.WriteLine("Parsing finished...");
-
             Console.ReadKey();
         }
 
@@ -72,9 +64,7 @@ namespace ImageParser
             {
                 string html = GET(site);
                 temp = GetLinksFromPage(html);
-                //ShowList(temp);
                 temp=CorrectLilks(site, temp);
-                //ShowList(temp);
                 foreach (var item in temp)
                 {
                      temp2.AddRange(GetAllLinksFromSite(item, deep-1, originalSite));
@@ -85,7 +75,6 @@ namespace ImageParser
             }
             
             temp = new List<string>(temp.Distinct());
-            //ShowList(temp);
             return temp;
         }
 
@@ -245,7 +234,6 @@ namespace ImageParser
             string Out = "";
             try
             {
-                //Console.WriteLine("Try GET: "+Url);
                 WebRequest req = WebRequest.Create(Url);
                 WebResponse resp = req.GetResponse();
                 
