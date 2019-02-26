@@ -16,13 +16,13 @@ namespace ImageParser
             List<string> links = new List<string>();
             string site = "";
             
-            site = @"http://ptime.ru/";
-            //site = @"https://ogo1.ru";
-
+            //site = @"http://ptime.ru/";
+            site = @"https://ogo1.ru";
+            site = @"https://www.meinbergglobal.com";
 
             Console.WriteLine("Start parsing...");
 
-            links = GetAllLinksFromSite(site, 3, site);
+            links = GetAllLinksFromSite(site, 2, site);
 
             foreach (var item in links)
             {
@@ -35,7 +35,8 @@ namespace ImageParser
 
             List<string> unicImages = new List<string> (images.Distinct());
 
-            ShowList(unicImages);
+            //ShowList(unicImages);
+            unicImages = CorectingForMeinberg(unicImages);
 
             foreach (var item in unicImages)
             {
@@ -45,6 +46,18 @@ namespace ImageParser
 
             Console.WriteLine("Parsing finished...");
             Console.ReadKey();
+        }
+
+        private static List<string> CorectingForMeinberg(List<string> unicImages)
+        {
+            List<string> temp = new List<string>();
+            foreach (var item in unicImages)
+            {
+                if (item.Contains(@"english/products/"))
+                    item.Remove(item.IndexOf("engl"), 17);
+
+            }
+            return temp;
         }
 
         private static void CheckLinks(List<string> links)
@@ -75,6 +88,7 @@ namespace ImageParser
             }
             
             temp = new List<string>(temp.Distinct());
+            ShowList(temp);
             return temp;
         }
 
@@ -102,8 +116,8 @@ namespace ImageParser
 
         private static string LocationCorrected(string item, List<string> l)
         {
-            string str = @"http://";
-            if (l.Last().EndsWith("html"))
+            string str = @"https://";
+            if (l.Last().EndsWith("htm"))
                 l.Remove(l.Last());
             for (int i = 1; i < l.Count; i++)
             {
@@ -151,7 +165,7 @@ namespace ImageParser
             temp = FindTagSRC(page, @"a ", "href=\"");
             foreach (var item in temp)
             {
-                if (item.EndsWith(".html"))
+                if (item.EndsWith(".htm"))
                     temp3.Add(item);
             }
 
@@ -232,6 +246,7 @@ namespace ImageParser
         private static string GET(string Url)
         {
             string Out = "";
+
             try
             {
                 WebRequest req = WebRequest.Create(Url);
@@ -248,7 +263,7 @@ namespace ImageParser
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(Url);
-                Console.ReadKey();
+                //Console.ReadKey();
                 return Out; 
             }
         }
